@@ -3,19 +3,21 @@ import cv2
 import time
 import numpy as np
 import osascript
+import pyautogui
 import HandTrackingModule as htm
+import KeyboardFunctions as kbf
 
 ##########
 wCam, hCam = 640, 480
 ##########
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 cap.set(3, wCam)
 cap.set(4, hCam)
 pTime = 0
 vol = 0
 volBar = 400
-detector = htm.handDetector(detectionCon=0.7)
+detector = htm.HandDetector(detectionCon=0.7)
 
 while True:
     success, img = cap.read()
@@ -39,10 +41,13 @@ while True:
 
         vol = np.interp(length, [50, 300], [0, 100])
         volBar = np.interp(length, [50, 300], [400, 150])
-        osascript.osascript(f"set volume output volume {vol}")
 
         if length < 50:
             cv2.circle(img, (cx, cy), 15, (0, 255, 0), cv2.FILLED)
+            kbf.rightArrowPress()
+        if length > 250:
+            cv2.circle(img, (cx, cy), 15, (0, 255, 0), cv2.FILLED)
+            kbf.leftArrowPress()
 
     cv2.rectangle(img, (50, 150), (85, 400), (0, 255, 0), 3)
     cv2.rectangle(img, (50, int(volBar)), (85, 400), (0, 255, 0), cv2.FILLED)
