@@ -19,11 +19,13 @@ pTime = 0
 vol = 0
 volBar = 400
 closed_fingers = []
-detector = htm.HandDetector(detectionCon=0.7)
+color = (255, 0, 0)
+detect_repeat = 0
+detector = htm.HandDetector(detectionCon=0.9)
 
 while True:
     success, img = cap.read()
-    img = detector.findHands(img)
+    img = detector.findHands(img, True, color)
     lmList = detector.findPosition(img, draw=False)
 
     if len(lmList) != 0:
@@ -34,17 +36,17 @@ while True:
         cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
 
 
-        cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
-        cv2.circle(img, (x2, y2), 15, (255, 0, 255), cv2.FILLED)
-        cv2.line(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
-        cv2.circle(img, (cx, cy), 15, (255, 0, 255), cv2.FILLED)
+        # cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
+        # cv2.circle(img, (x2, y2), 15, (255, 0, 255), cv2.FILLED)
+        # cv2.line(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
+        # cv2.circle(img, (cx, cy), 15, (255, 0, 255), cv2.FILLED)
 
         length = math.hypot(x2 - x1, y2 - y1)
 
         vol = np.interp(length, [50, 300], [0, 100])
         volBar = np.interp(length, [50, 300], [400, 150])
 
-        print(hgt.findOrientation(lmList[0], lmList[9]))
+        # print(hgt.findOrientation(lmList[0], lmList[9]))
         closed_fingers = hgt.inPointingGesture(lmList)
         # if length < 50:
         #     cv2.circle(img, (cx, cy), 15, (0, 255, 0), cv2.FILLED)
@@ -67,11 +69,22 @@ while True:
                 1, (255, 0, 0), 3)
 
     if len(closed_fingers) != 0:
+        if all(i for i in closed_fingers):
+            # print("detected" + str(detect_repeat))
+            detect_repeat += 1
+            color = (0, 255, 0)
+        else:
+            detect_repeat = 0
+            color = (255, 0, 0)
         cv2.putText(img, f'Middle: {closed_fingers[0]}', (40, 100), cv2.FONT_HERSHEY_SIMPLEX,
                     1, (255, 0, 0), 3)
         cv2.putText(img, f'Ring: {closed_fingers[1]}', (40, 150), cv2.FONT_HERSHEY_SIMPLEX,
                     1, (255, 0, 0), 3)
         cv2.putText(img, f'Pinky: {closed_fingers[2]}', (40, 200), cv2.FONT_HERSHEY_SIMPLEX,
+                    1, (255, 0, 0), 3)
+        cv2.putText(img, f'Pointer: {closed_fingers[4]}', (40, 250), cv2.FONT_HERSHEY_SIMPLEX,
+                    1, (255, 0, 0), 3)
+        cv2.putText(img, f'Thumb: {closed_fingers[5]}', (40, 300), cv2.FONT_HERSHEY_SIMPLEX,
                     1, (255, 0, 0), 3)
 
     cv2.imshow("Img", img)

@@ -16,13 +16,14 @@ class HandDetector:
                                         min_tracking_confidence=self.trackCon)
         self.mpDraw = mp.solutions.drawing_utils
 
-    def findHands(self, img, draw=True):
+    def findHands(self, img, draw=True, color=(255, 0, 0)):
         imgRGB = cv.cvtColor(img, cv.COLOR_BGR2RGB)
         self.results = self.hands.process(imgRGB)
         if self.results.multi_hand_landmarks:
             for handLms in self.results.multi_hand_landmarks:
                 if draw:
-                    self.mpDraw.draw_landmarks(img, handLms, self.mphands.HAND_CONNECTIONS)
+                    self.mpDraw.draw_landmarks(img, handLms, self.mphands.HAND_CONNECTIONS,
+                                               self.mpDraw.DrawingSpec(color))
         return img
 
     def findPosition(self, img, handNum=0, draw=True):
