@@ -12,7 +12,7 @@ import HandGestureDetection as hgt
 wCam, hCam = 640, 480
 ##########
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 cap.set(3, wCam)
 cap.set(4, hCam)
 pTime = 0
@@ -20,8 +20,9 @@ vol = 0
 volBar = 400
 closed_fingers = []
 color = (255, 0, 0)
+pointingGesture = "None"
 detect_repeat = 0
-detector = htm.HandDetector(detectionCon=0.9)
+detector = htm.HandDetector(detectionCon=0.8)
 
 while True:
     success, img = cap.read()
@@ -47,7 +48,7 @@ while True:
         volBar = np.interp(length, [50, 300], [400, 150])
 
         # print(hgt.findOrientation(lmList[0], lmList[9]))
-        closed_fingers = hgt.inPointingGesture(lmList)
+        pointingGesture = hgt.inPointingGesture(lmList)
         # if length < 50:
         #     cv2.circle(img, (cx, cy), 15, (0, 255, 0), cv2.FILLED)
         #     kbf.rightArrowPress()
@@ -68,24 +69,15 @@ while True:
     cv2.putText(img, f'FPS: {int(fps)}', (40, 50), cv2.FONT_HERSHEY_SIMPLEX,
                 1, (255, 0, 0), 3)
 
-    if len(closed_fingers) != 0:
-        if all(i for i in closed_fingers):
-            # print("detected" + str(detect_repeat))
-            detect_repeat += 1
-            color = (0, 255, 0)
-        else:
-            detect_repeat = 0
-            color = (255, 0, 0)
-        cv2.putText(img, f'Middle: {closed_fingers[0]}', (40, 100), cv2.FONT_HERSHEY_SIMPLEX,
+    if pointingGesture != "None":
+        # print("detected" + str(detect_repeat))
+        detect_repeat += 1
+        color = (0, 255, 0)
+        cv2.putText(img, f'Orientation: {pointingGesture}', (20, 100), cv2.FONT_HERSHEY_SIMPLEX,
                     1, (255, 0, 0), 3)
-        cv2.putText(img, f'Ring: {closed_fingers[1]}', (40, 150), cv2.FONT_HERSHEY_SIMPLEX,
-                    1, (255, 0, 0), 3)
-        cv2.putText(img, f'Pinky: {closed_fingers[2]}', (40, 200), cv2.FONT_HERSHEY_SIMPLEX,
-                    1, (255, 0, 0), 3)
-        cv2.putText(img, f'Pointer: {closed_fingers[4]}', (40, 250), cv2.FONT_HERSHEY_SIMPLEX,
-                    1, (255, 0, 0), 3)
-        cv2.putText(img, f'Thumb: {closed_fingers[5]}', (40, 300), cv2.FONT_HERSHEY_SIMPLEX,
-                    1, (255, 0, 0), 3)
+    else:
+        detect_repeat = 0
+        color = (255, 0, 0)
 
     cv2.imshow("Img", img)
     cv2.waitKey(1)

@@ -1,78 +1,70 @@
 import math
-from math import dist
 
 def toVec(coord_1, coord_2):
-    return [coord_2[3] - coord_1[3], coord_2[4] - coord_1[4], (coord_2[5] - coord_1[5])]
+    return [coord_2[i] - coord_1[i] for i in range(3, 6)]
 def mag3d(vec):
-    return math.sqrt(vec[0] ** 2 + vec[1] ** 2 + vec[2] ** 2)
+    return math.sqrt(sum(v ** 2 for v in vec))
+
+def dot3d(vec_1, vec_2):
+    return sum(v1 * v2 for v1, v2 in zip(vec_1, vec_2))
 
 def cosVec(vec_1, vec_2):
     return dot3d(vec_1, vec_2) / (mag3d(vec_1) * mag3d(vec_2))
 
-def dot3d(vec_1, vec_2):
-    [x1, y1, z1] = vec_1[0], vec_1[1], vec_1[2]
-    [x2, y2, z2] = vec_2[0], vec_2[1], vec_2[2]
-
-    return x1 * x2 + y1 * y2 + z1 * z2
 def dist3d(coord_1, coord_2):
-    [x1, y1, z1] = coord_1[3], coord_1[4], coord_1[5]
-    [x2, y2, z2] = coord_2[3], coord_2[4], coord_2[5]
+    x1, y1, z1 = coord_1[3:6]
+    x2, y2, z2 = coord_2[3:6]
 
-    return (((x2-x1)**2)+((y2-y1)**2)+((z2-z1)**2))**(1/2)
+    return ((x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2) ** 0.5
 
 def findOrientation(coordinate_landmark_0, coordinate_landmark_9):
-    x0 = coordinate_landmark_0[3]
-    y0 = coordinate_landmark_0[4]
+    # Finds orientation of hand through finding 2d slope between base node and middle finger knuckle node
+    x0, y0 = coordinate_landmark_0[3:5]
+    x9, y9 = coordinate_landmark_9[3:5]
 
-    x9 = coordinate_landmark_9[3]
-    y9 = coordinate_landmark_9[4]
+    xd = x9 - x0
+    yd = y9 - y0
 
-    if abs(x9 - x0) < 0.05:  # since tan(0) --> ∞
-        m = 1000000000
-    else:
-        m = abs((y9 - y0) / (x9 - x0))
-
-    if m >= 0 and m <= 2:
-        if x9 > x0:
-            return "Right"
-        else:
-            return "Left"
-    if m > 2:
-        if y9 < y0:  # since, y decreases upwards
-            return "Up"
-        else:
-            return "Down"
+    # Note: "Left" and "Right" are swapped due to camera mirroring
+    if xd > 0 and -2 <= yd / xd <= -.2:
+        return "Left"
+    if xd < 0 and .2 <= yd / xd <= 2:
+        return "Right"
+    return "None"
 
 def fingerClosed(base_node, knuckle_node, joint_node, tip_node):
+    # Detects closed finger if the tip of a finger is closer to the base node than both the joint and knuckle
+
     knuckle_dist = dist3d(knuckle_node, base_node)
     joint_dist = dist3d(joint_node, base_node)
     tip_dist = dist3d(tip_node, base_node)
     return tip_dist < knuckle_dist and tip_dist < joint_dist
 
 def thumbPointerExtended(node_2, node_3, node_5, node_6, node_7, node_8):
+    # Detects 90-degree angle between extended thumb and pointer
+    # node 2: thumb knuckle, node 3: thumb joint, node 5 - 8: knuckle, 2 joints, and fingertip
+
+    # Determines if the thumb is facing the right orientation
     vec23 = toVec(node_2, node_3)
-    if vec23[1] / abs(vec23[0]) > -.7:
-        return [False, False, False]
+    if vec23[1] / abs(vec23[0]) > -.5:
+        return False
 
     vec56 = toVec(node_5, node_6)
     vec67 = toVec(node_6, node_7)
     vec78 = toVec(node_7, node_8)
 
-    return [cosVec(vec56, vec67) > .9 and cosVec(vec67, vec78) > .9 and cosVec(vec23, vec56) < .85,
-            cosVec(vec56, vec67) > .9 and cosVec(vec67, vec78) > .9, cosVec(vec23, vec56) < .85]
+    # Determines if the pointer is straight enough, and if the pointer and thumb vectors are orthogonal enough
+    return cosVec(vec56, vec67) > .95 and cosVec(vec67, vec78) > .95 and cosVec(vec23, vec56) < .85
 
 def inPointingGesture(lmList):
-    middle_finger_closed = fingerClosed(lmList[0], lmList[9], lmList[11], lmList[12])
-    ring_finger_closed = fingerClosed(lmList[0], lmList[13], lmList[15], lmList[16])
-    pinky_finger_closed = fingerClosed(lmList[0], lmList[17], lmList[19], lmList[20])
-    extended, pointer, thumb = False, False, False
-    if middle_finger_closed and ring_finger_closed and pinky_finger_closed:
-        # print("all closed!")
-        extended, pointer, thumb = thumbPointerExtended(lmList[2], lmList[3], lmList[5], lmList[6], lmList[7], lmList[8])
-    else:
-        extended, pointer, thumb = thumbPointerExtended(lmList[2], lmList[3], lmList[5], lmList[6], lmList[7], lmList[8])
-        # print(middle_finger_closed, ring_finger_closed, pinky_finger_closed)
+    # Combines all detections above to get the complete gesture detection, returns the direction of the gesture
 
-    # thumbPointerExtended(lmList[2], lmList[3], lmList[5], lmList[6], lmList[7], lmList[8])
+    # Iterates through the middle, ring, and pinky fingers and determines if they are closed
+    closed_fingers = [fingerClosed(lmList[0], lmList[i], lmList[i + 2], lmList[i + 3]) for i in [9, 13, 17]]
 
-    return [middle_finger_closed, ring_finger_closed, pinky_finger_closed, extended, pointer, thumb]
+    thumb_extended = thumbPointerExtended(lmList[2], lmList[3], lmList[5], lmList[6], lmList[7], lmList[8])
+
+    if all(closed_fingers) and thumb_extended:
+        return findOrientation(lmList[0], lmList[9])
+
+    return "None"
