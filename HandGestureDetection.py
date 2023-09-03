@@ -28,9 +28,9 @@ def findOrientation(coordinate_landmark_0, coordinate_landmark_9):
 
     # Note: "Left" and "Right" are swapped due to camera mirroring
     if xd > 0 and -2 <= yd / xd <= -.05:
-        return "Left"
-    if xd < 0 and .05 <= yd / xd <= 2:
         return "Right"
+    if xd < 0 and .05 <= yd / xd <= 2:
+        return "Left"
     return "None"
 
 def fingerClosed(base_node, knuckle_node, joint_node, tip_node):
