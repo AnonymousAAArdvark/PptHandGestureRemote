@@ -4,6 +4,9 @@ import HandTrackingModule as htm
 import KeyboardFunctions as kbf
 import HandGestureDetection as hgt
 
+import mediapipe
+print(mediapipe.__file__)
+
 ##########
 wCam, hCam = 640, 480
 ##########
@@ -60,10 +63,8 @@ while True:
 
     if nRepeats == 2:
         kbf.arrowKeyPress(action)
-        print("pressed")
     elif nRepeats % 6 == 0 and nRepeats != 0:
         kbf.arrowKeyPress(action)
-        print("pressed")
 
     detector.drawHands(img, pointingGesture)
 
