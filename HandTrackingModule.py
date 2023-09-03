@@ -50,32 +50,3 @@ class HandDetector:
                     handColor = (255, 0, 0)
                 self.mpDraw.draw_landmarks(img, handLms, self.mphands.HAND_CONNECTIONS,
                                            self.mpDraw.DrawingSpec(handColor))
-
-
-def main():
-    prevTime = 0
-    currTime = 0
-    # numDevices = cv.getDevic
-    # for i in range(cv.getDevice)
-    cap = cv.VideoCapture(0)
-    detector = HandDetector()
-    while True:
-        success, img = cap.read()
-        img = detector.findHands(img)
-        lmlist = detector.findPosition(img)
-        if len(lmlist) != 0:
-            print(lmlist[0])
-
-        currTime = time.time()
-        fps = 1 / (currTime - prevTime)
-        prevTime = currTime
-
-        cv.putText(img, str(int(fps)), (10, 70), cv.FONT_HERSHEY_PLAIN, 3,
-                   (255, 0, 255), 3)
-
-        cv.imshow("Image", img)
-        cv.waitKey(1)
-
-
-if __name__ == "__main__":
-    main()
