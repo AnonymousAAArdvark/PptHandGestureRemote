@@ -2,6 +2,7 @@ import math
 
 def toVec(coord_1, coord_2):
     return [coord_2[i] - coord_1[i] for i in range(3, 6)]
+
 def mag3d(vec):
     return math.sqrt(sum(v ** 2 for v in vec))
 
@@ -26,9 +27,9 @@ def findOrientation(coordinate_landmark_0, coordinate_landmark_9):
     yd = y9 - y0
 
     # Note: "Left" and "Right" are swapped due to camera mirroring
-    if xd > 0 and -2 <= yd / xd <= -.2:
+    if xd > 0 and -2 <= yd / xd <= -.05:
         return "Left"
-    if xd < 0 and .2 <= yd / xd <= 2:
+    if xd < 0 and .05 <= yd / xd <= 2:
         return "Right"
     return "None"
 
@@ -38,7 +39,7 @@ def fingerClosed(base_node, knuckle_node, joint_node, tip_node):
     knuckle_dist = dist3d(knuckle_node, base_node)
     joint_dist = dist3d(joint_node, base_node)
     tip_dist = dist3d(tip_node, base_node)
-    return tip_dist < knuckle_dist and tip_dist < joint_dist
+    return tip_dist < knuckle_dist * 1.2 and tip_dist < joint_dist
 
 def thumbPointerExtended(node_2, node_3, node_5, node_6, node_7, node_8):
     # Detects 90-degree angle between extended thumb and pointer
