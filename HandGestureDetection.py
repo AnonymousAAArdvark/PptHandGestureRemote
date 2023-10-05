@@ -48,14 +48,16 @@ def thumbPointerExtended(node_2, node_3, node_5, node_6, node_7, node_8):
     # Determines if the thumb is facing the right orientation
     vec23 = toVec(node_2, node_3)
     if vec23[1] / abs(vec23[0]) > -.5:
-        return False
+        return [False, False, False]
 
     vec56 = toVec(node_5, node_6)
     vec67 = toVec(node_6, node_7)
     vec78 = toVec(node_7, node_8)
 
     # Determines if the pointer is straight enough, and if the pointer and thumb vectors are orthogonal enough
-    return cosVec(vec56, vec67) > .95 and cosVec(vec67, vec78) > .95 and cosVec(vec23, vec56) < .85
+    return [cosVec(vec56, vec67) > .95 and cosVec(vec67, vec78) > .95 and cosVec(vec23, vec56) < .85,
+            cosVec(vec56, vec67) > .95 and cosVec(vec67, vec78) > .95,
+            cosVec(vec23, vec56) < .85]
 
 def inPointingGesture(lmList):
     # Combines all detections above to get the complete gesture detection, returns the direction of the gesture
@@ -63,9 +65,9 @@ def inPointingGesture(lmList):
     # Iterates through the middle, ring, and pinky fingers and determines if they are closed
     closed_fingers = [fingerClosed(lmList[0], lmList[i], lmList[i + 2], lmList[i + 3]) for i in [9, 13, 17]]
 
-    thumb_extended = thumbPointerExtended(lmList[2], lmList[3], lmList[5], lmList[6], lmList[7], lmList[8])
+    [thumb_extended, pointer, thumbpointer] = thumbPointerExtended(lmList[2], lmList[3], lmList[5], lmList[6], lmList[7], lmList[8])
 
     if all(closed_fingers) and thumb_extended:
-        return findOrientation(lmList[0], lmList[9])
+        return [findOrientation(lmList[0], lmList[9]), pointer, thumbpointer, closed_fingers]
 
-    return "None"
+    return [findOrientation(lmList[0], lmList[9]), pointer, thumbpointer, closed_fingers]
